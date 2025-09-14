@@ -1,0 +1,252 @@
+       IDENTIFICATION DIVISION.                                         00010001
+       PROGRAM-ID. BACKUP.                                              00020001
+       ENVIRONMENT DIVISION.                                            00030001
+       INPUT-OUTPUT SECTION.                                            00040001
+       FILE-CONTROL.                                                    00050001
+           SELECT TI001-PS ASSIGN       TO DD1                          00060001
+                           ACCESS       IS SEQUENTIAL                   00070001
+                           ORGANIZATION IS SEQUENTIAL                   00080001
+                           FILE STATUS  IS WS05-FST-TI001.              00090005
+           SELECT TO001-PS ASSIGN       TO DD2                          00100001
+                           ACCESS       IS SEQUENTIAL                   00110001
+                           ORGANIZATION IS SEQUENTIAL                   00120001
+                           FILE STATUS  IS WS05-FST-TO001.              00130001
+       DATA DIVISION.                                                   00140001
+       FILE SECTION.                                                    00150001
+       FD TI001-PS.                                                     00160001
+       01 TI001-PS-REC.                                                 00170001
+           05 TI001-SERIAL-NO  PIC  9(02).                              00171006
+           05 FILLER           PIC  X(01).                              00172006
+           05 TI001-ID         PIC  9(12).                              00180001
+           05 FILLER           PIC  X(01).                              00190001
+           05 TI001-OPR        PIC  X(01).                              00200001
+           05 FILLER           PIC  X(63).                              00210006
+       FD TO001-PS.                                                     00211001
+       01 TO001-PS-REC.                                                 00212001
+           05 TO001-ID         PIC  X(12).                              00213010
+           05 FILLER           PIC  X(01).                              00214001
+           05 TO001-NAME       PIC  X(15).                              00215001
+           05 FILLER           PIC  X(01).                              00216001
+           05 TO001-GENDER     PIC  X(01).                              00217001
+           05 FILLER           PIC  X(01).                              00218001
+           05 TO001-DEPT       PIC  X(04).                              00219001
+           05 FILLER           PIC  X(01).                              00219101
+           05 TO001-DOJ        PIC  X(10).                              00219201
+           05 FILLER           PIC  X(01).                              00219301
+           05 TO001-SALARY     PIC  9(05).9(02).                        00219411
+           05 FILLER           PIC  X(01).                              00219502
+           05 TO001-OPR        PIC  X(01).                              00219602
+           05 FILLER           PIC  X(23).                              00219702
+       WORKING-STORAGE SECTION.                                         00220001
+       01 WS01-VARS.                                                    00230001
+           05 WS05-FST-TI001   PIC  9(02).                              00240001
+           05 WS05-FST-TO001   PIC  9(02).                              00250001
+           05 WS05-REC-COUNT   PIC  9(02) VALUE 00.                     00252002
+           05 WS05-SQLCODE     PIC S9(04) SIGN LEADING SEPARATE.        00260005
+           05 WS05-ERR-LRECL   PIC S9(04) COMP VALUE 80.                00270001
+           05 WS05-ERR-MSG.                                             00280001
+               10 WS10-ERR-LEN PIC S9(09) COMP VALUE 800.               00290001
+               10 WS10-ERR-TXT PIC  X(80) OCCURS 10 TIMES.              00300001
+           EXEC SQL                                                     00310001
+               INCLUDE SQLCA                                            00320001
+           END-EXEC.                                                    00330001
+           EXEC SQL                                                     00340001
+               INCLUDE DCLEMP2                                          00350001
+           END-EXEC.                                                    00360001
+       PROCEDURE DIVISION.                                              00370001
+       0000-MAIN-PARA.                                                  00380001
+           PERFORM 1000-INIT-PARA                                       00390001
+           PERFORM 3000-PROC-PARA                                       00400001
+              THRU 3000-PROC-PARA-EXIT                                  00410001
+           PERFORM 9000-TERM-PARA                                       00420001
+           .                                                            00430001
+       1000-INIT-PARA.                                                  00440001
+           CONTINUE                                                     00450001
+           .                                                            00460001
+       3000-PROC-PARA.                                                  00470001
+           PERFORM 3100-OPEN-PARA                                       00480001
+              THRU 3100-OPEN-PARA-EXIT                                  00490001
+           PERFORM 3200-READ-PARA                                       00500001
+              THRU 3200-READ-PARA-EXIT                                  00510001
+             UNTIL WS05-FST-TI001 = 10                                  00520013
+           PERFORM 3300-CLOSE-PARA                                      00530001
+              THRU 3300-CLOSE-PARA-EXIT                                 00540001
+           .                                                            00550001
+       3000-PROC-PARA-EXIT.                                             00560001
+           EXIT                                                         00570001
+           .                                                            00571001
+       3100-OPEN-PARA.                                                  00580001
+           OPEN INPUT TI001-PS                                          00590001
+           EVALUATE TRUE                                                00600001
+           WHEN WS05-FST-TI001 = 00                                     00610005
+                DISPLAY 'TI001 WAS OPENED'                              00620001
+           WHEN OTHER                                                   00630001
+                DISPLAY 'TI001 WAS FAILED TO OPEN. FST : '              00640001
+                        WS05-FST-TI001                                  00650001
+           END-EVALUATE                                                 00651012
+           OPEN OUTPUT TO001-PS                                         00660001
+           EVALUATE TRUE                                                00670001
+           WHEN WS05-FST-TO001 = 00                                     00680005
+                DISPLAY 'TO001 WAS OPENED'                              00690001
+           WHEN OTHER                                                   00700001
+                DISPLAY 'TO001 WAS FAILED TO OPEN. FST : '              00710001
+                        WS05-FST-TO001                                  00720001
+           END-EVALUATE                                                 00730001
+           .                                                            00740001
+       3100-OPEN-PARA-EXIT.                                             00750001
+           EXIT                                                         00760001
+           .                                                            00770001
+       3200-READ-PARA.                                                  00780001
+           MOVE SPACES TO TI001-PS-REC                                  00790001
+           ADD 1 TO WS05-REC-COUNT                                      00791002
+           READ TI001-PS                                                00800001
+           EVALUATE TRUE                                                00810001
+           WHEN WS05-FST-TI001 = 00                                     00820001
+                PERFORM 3210-OPERATION-PARA                             00830001
+                   THRU 3210-OPERATION-PARA-EXIT                        00840001
+           WHEN WS05-FST-TI001 = 10                                     00850001
+                DISPLAY 'TI001 RECORDS WERE READ'                       00860001
+           WHEN OTHER                                                   00870001
+                DISPLAY 'TI001 RECORDS WERE FAILED TO BE READ. FST : '  00880001
+                        WS05-FST-TI001                                  00890001
+           END-EVALUATE                                                 00900001
+           .                                                            00910001
+       3200-READ-PARA-EXIT.                                             00920001
+           EXIT                                                         00930001
+           .                                                            00940001
+       3210-OPERATION-PARA.                                             00950002
+           INITIALIZE DCLEMP2                                           00960002
+           MOVE TI001-ID TO HV-ID                                       00970009
+           EVALUATE TRUE                                                00980002
+           WHEN TI001-OPR = 'D'                                         00990002
+                DISPLAY 'RECORD ' WS05-REC-COUNT ' OPERATION IS : '     00992003
+                        TI001-OPR                                       00993003
+                PERFORM 3211-SELECT-PARA                                01000002
+                   THRU 3211-SELECT-PARA-EXIT                           01010002
+                PERFORM 3212-DELETE-PARA                                01020002
+                   THRU 3212-DELETE-PARA-EXIT                           01030002
+           WHEN TI001-OPR = 'U'                                         01031002
+                DISPLAY 'RECORD ' WS05-REC-COUNT ' OPERATION IS : '     01031103
+                        TI001-OPR                                       01031203
+                PERFORM 3211-SELECT-PARA                                01032002
+                   THRU 3211-SELECT-PARA-EXIT                           01033002
+                PERFORM 3213-UPDATE-PARA                                01034002
+                   THRU 3213-UPDATE-PARA-EXIT                           01035002
+           WHEN OTHER                                                   01040002
+                DISPLAY 'INVALID OPERATION : ' TI001-OPR                01050003
+           END-EVALUATE                                                 01060002
+           .                                                            01070002
+       3210-OPERATION-PARA-EXIT.                                        01080002
+           EXIT                                                         01090002
+           .                                                            01100002
+       3211-SELECT-PARA.                                                01110002
+           EXEC SQL                                                     01120002
+                SELECT                                                  01130002
+                   ID                                                   01140002
+                  ,NAME                                                 01150002
+                  ,GENDER                                               01160002
+                  ,DEPT                                                 01170002
+                  ,DOJ                                                  01180002
+                  ,SALARY                                               01190002
+                INTO                                                    01200002
+                   :HV-ID                                               01210004
+                  ,:HV-NAME                                             01220002
+                  ,:HV-GENDER                                           01230002
+                  ,:HV-DEPT                                             01240002
+                  ,:HV-DOJ                                              01250002
+                  ,:HV-SALARY                                           01260002
+                FROM                                                    01270002
+                  EMP2                                                  01280002
+                WHERE ID = :HV-ID                                       01290002
+            END-EXEC.                                                   01300002
+            EVALUATE TRUE                                               01310002
+            WHEN SQLCODE = 0                                            01320003
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' IS SELECTED'        01321003
+            WHEN SQLCODE = 100                                          01331003
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' IS NOT SELECTED'    01332008
+            WHEN OTHER                                                  01340002
+                 MOVE SQLCODE TO WS05-SQLCODE                           01340102
+                 DISPLAY 'SELECT SQL HAS ERROR. SQLCODE : ' WS05-SQLCODE01341002
+                 PERFORM 9000-TERM-PARA                                 01350002
+            END-EVALUATE                                                01360002
+            .                                                           01370002
+        3211-SELECT-PARA-EXIT.                                          01380002
+            EXIT                                                        01390002
+            .                                                           01400002
+        3212-DELETE-PARA.                                               01410002
+            EXEC SQL                                                    01420002
+                DELETE FROM                                             01430002
+                    EMP2                                                01431002
+                WHERE                                                   01440002
+                    ID = :HV-ID                                         01450002
+            END-EXEC.                                                   01460002
+            EVALUATE TRUE                                               01470002
+            WHEN SQLCODE = 0                                            01480012
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' WAS DELETED'        01481003
+                 PERFORM 3214-WRITE-PARA                                01490002
+                    THRU 3214-WRITE-PARA-EXIT                           01500002
+            WHEN SQLCODE = 100                                          01510002
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' WAS NOT FOUND'      01520003
+            WHEN OTHER                                                  01530002
+                 MOVE SQLCODE TO WS05-SQLCODE                           01531002
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' WAS NOT DELETED'    01540003
+                 DISPLAY 'SQLCODE : ' WS05-SQLCODE                      01541003
+            END-EVALUATE                                                01560002
+            .                                                           01570002
+        3212-DELETE-PARA-EXIT.                                          01580002
+            EXIT                                                        01590002
+            .                                                           01600002
+        3213-UPDATE-PARA.                                               01610002
+            EXEC SQL                                                    01630002
+                 UPDATE EMP2                                            01640002
+                 SET SALARY = :HV-SALARY * 1.1                          01650014
+                 WHERE ID = :HV-ID                                      01660002
+            END-EXEC.                                                   01670002
+            EVALUATE TRUE                                               01680002
+            WHEN SQLCODE = 0                                            01690002
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' WAS UPDATED'        01700003
+                 PERFORM 3214-WRITE-PARA                                01710002
+                    THRU 3214-WRITE-PARA-EXIT                           01720002
+            WHEN SQLCODE = 100                                          01730002
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' WAS NOT FOUND'      01740003
+            WHEN OTHER                                                  01750002
+                 MOVE SQLCODE TO WS05-SQLCODE                           01751002
+                 DISPLAY 'RECORD ' WS05-REC-COUNT ' WAS NOT UPDATED'    01760003
+                 DISPLAY 'SQLCODE : ' WS05-SQLCODE                      01761003
+            END-EVALUATE                                                01780002
+            .                                                           01790002
+        3213-UPDATE-PARA-EXIT.                                          01800002
+            EXIT                                                        01810002
+            .                                                           01820002
+        3214-WRITE-PARA.                                                01830002
+            MOVE HV-ID        TO TO001-ID                               01840002
+            MOVE HV-NAME-TEXT TO TO001-NAME                             01850002
+            MOVE HV-GENDER    TO TO001-GENDER                           01860002
+            MOVE HV-DEPT-TEXT TO TO001-DEPT                             01870002
+            MOVE HV-DOJ       TO TO001-DOJ                              01880002
+            MOVE HV-SALARY    TO TO001-SALARY                           01890002
+            MOVE TI001-OPR    TO TO001-OPR                              01900002
+            WRITE TO001-PS-REC                                          01910002
+            EVALUATE TRUE                                               01920002
+            WHEN WS05-FST-TO001 = 00                                    01930002
+                 DISPLAY 'RECORD ' WS05-REC-COUNT                       01940003
+                         ' WAS BACKED UP'                               01941002
+            WHEN WS05-FST-TO001 = 10                                    01950002
+                 DISPLAY 'END OF RECORDS'                               01960002
+            WHEN OTHER                                                  01970002
+                 DISPLAY 'UNABLE TO WRITE RECORD : ' WS05-REC-COUNT     01980002
+            END-EVALUATE                                                01990002
+            .                                                           02000002
+        3214-WRITE-PARA-EXIT.                                           02010002
+            EXIT                                                        02020002
+            .                                                           02030002
+        3300-CLOSE-PARA.                                                02031005
+            CLOSE TI001-PS TO001-PS                                     02032005
+            .                                                           02033005
+        3300-CLOSE-PARA-EXIT.                                           02034005
+            EXIT                                                        02035005
+            .                                                           02036005
+        9000-TERM-PARA.                                                 02040002
+            STOP RUN                                                    02050002
+            .                                                           02060002
+
