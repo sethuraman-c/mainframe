@@ -21,19 +21,25 @@ MFRP_Allianz_India_Insurance
 🔹 JCL
 
 ICT03_Student_Marks
+
 L2_Company_Share
+
 L3_Inventory_Management
 
 🔹 COBOL
 
 CC01_Product_Management
+
 L1_Company_Share
+
 ICT01_Flight_Management
+
 ICT02_Student_Mark_Management
 
 🔹 DB2
 
 CC01_Product_Item_Details
+
 ICT02_Library_Management
 
 Each folder contains a README file (in .docx or .txt format) with details about the respective project.
@@ -48,8 +54,8 @@ Contains my worked out assessment code answers based on JCL, COBOL and DB2 utili
 📌 Files
 
 sort_with_KSDS
-sort_with_RRDS
-sort_using_Catalogue
+
+sort_with_RRDSsort_using_Catalogue
 
 
 ---
@@ -61,22 +67,39 @@ Contains my hands-on codes of practice exercises using Mainframe utilities.
 📌 Files
 
 BACKUP-COBOL.txt
+
 BACKUP-PS.txt
+
 DATA 1.txt
+
 DATA.txt
+
 DATETIME.txt
+
 FILES01.txt
+
 FLREPORT.txt
+
 INPUT-PS.txt
+
 JCLEX01.txt
+
 JCLEX02.txt
+
 JCLEX04.txt
+
 JCLEX05.txt
+
 JCLEX06.txt
+
 READWRIT.txt
+
 REPORT1.txt
+
 VSAMFILS.txt
+
 VSAMREAD.txt
+
 VSCOBRUN.txt
 
 
