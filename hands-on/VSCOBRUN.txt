@@ -1,0 +1,33 @@
+//TECN013A JOB NOTIFY=&SYSUID                                           00010000
+//STEP001  EXEC PGM=IDCAMS                                              00011001
+//SYSPRINT DD SYSOUT=*                                                  00012001
+//SYSIN    DD *                                                         00013001
+  DELETE TECN013.SETHU.COBOL.KSDS                                       00014001
+  DEFINE CLUSTER( -                                                     00017001
+  NAME(TECN013.SETHU.COBOL.KSDS) -                                      00018001
+  TRACK(1,1) -                                                          00019001
+  VOLUME(ZAPRD4) -                                                      00019101
+  RECORDSIZE(80,80) -                                                   00019201
+  CISZ(512) -                                                           00019301
+  KEYS(12,0) -                                                          00019401
+  FREESPACE(10,10) -                                                    00019501
+  INDEXED) -                                                            00019601
+  DATA(NAME(TECN013.SETHU.COBOL.KSDS.DATA)) -                           00019701
+  INDEX(NAME(TECN013.SETHU.COBOL.KSDS.INDEX))                           00019801
+  DELETE TECN013.SETHU.COBOL.ESDS                                       00019901
+  DEFINE CLUSTER( -                                                     00020001
+  NAME(TECN013.SETHU.COBOL.ESDS) -                                      00020101
+  TRACK(1,1) -                                                          00020201
+  VOLUME(ZAPRD4) -                                                      00020301
+  RECORDSIZE(80,80) -                                                   00020401
+  CISZ(512) -                                                           00020501
+  NONINDEXED)                                                           00020601
+/*                                                                      00020701
+//RUN EXEC PGM=VSAM                                                     00021001
+//STEPLIB DD DSN=TECN013.SETHU.COBOL.LOADLIB,DISP=SHR                   00030000
+//SYSPRINT DD SYSOUT=*                                                  00040000
+//DD1 DD DSN=TECN013.SETHU.COBOL.PDS(DATA),DISP=SHR                     00050000
+//DD2 DD DSN=TECN013.SETHU.COBOL.KSDS,DISP=SHR                          00060001
+//DD3 DD DSN=TECN013.SETHU.COBOL.ESDS,DISP=SHR                          00061001
+//SYSIN DD DUMMY                                                        00070000
+

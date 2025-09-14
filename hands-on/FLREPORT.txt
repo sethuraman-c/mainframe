@@ -1,0 +1,231 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. FLREPORT.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT TI001-PS ASSIGN TO DD1
+                           ACCESS IS SEQUENTIAL
+                           ORGANIZATION IS SEQUENTIAL
+                           FILE STATUS IS WS05-FST-TI001.
+           SELECT TO001-PS ASSIGN TO DD2
+                           ACCESS IS SEQUENTIAL
+                           ORGANIZATION IS SEQUENTIAL
+                           FILE STATUS IS WS05-FST-TO001.
+       DATA DIVISION.
+       FILE SECTION.
+       FD TI001-PS.
+       01 TI001-PS-REC.
+           05 TI001-ROLL-NUMBER PIC 9(12).
+           05 FILLER            PIC X(01).
+           05 TI001-NAME        PIC A(15).
+           05 FILLER            PIC X(01).
+           05 TI001-DEPARTMENT  PIC A(03).
+           05 FILLER            PIC X(01).
+           05 TI001-LOCATION    PIC A(11).
+           05 FILLER            PIC X(01).
+           05 TI001-SALARY      PIC 9(05).9(02).
+           05 FILLER            PIC X(01).
+           05 TI001-NEW-SALARY  PIC 9(06).9(02).
+           05 FILLER            PIC X(17).
+       FD TO001-PS.
+       01 TO001-PS-REC          PIC X(80).
+       WORKING-STORAGE SECTION.
+       01 WS01-VARS.
+           05 WS05-FST-TI001    PIC 9(02).
+           05 WS05-FST-TO001    PIC 9(02).
+           05 WS05-HEADER-1.
+               10 SPACES-1      PIC X(31) VALUE     SPACES.
+               10 HEADER        PIC A(10) VALUE     'CTS REPORT' .
+               10 SPACES-2      PIC X(39) VALUE     SPACES.
+           05 WS05-DATETIME.
+               10 WS05-DATE     PIC 9(08).
+               10 WS05-TIME     PIC 9(08).
+           05 WS05-HEADER-2.
+               10 DATE-NAME     PIC X(07) VALUE     'DATE : ' .
+               10 DATEE         PIC X(10).
+               10 SPACES-1      PIC X(13) VALUE     SPACES.
+               10 PAGE-NAME     PIC X(11) VALUE     'PAGE NO. : ' .
+               10 PAGE-VALUE    PIC 9(01) VALUE     1 .
+               10 SPACES-2      PIC X(15) VALUE     SPACES.
+               10 TIME-NAME     PIC X(07) VALUE     'TIME : ' .
+               10 TIMEE-1       PIC 9(02).
+               10 TIMEE-2       PIC X(06).
+               10 SPACES-3      PIC X(08) VALUE ALL SPACES.
+           05 WS05-HEADER-3.
+               10 FILLERR       PIC X(80) VALUE ALL '-' .
+           05 WS05-TO001-1.
+               10 ROLL-NUMBER   PIC A(11) VALUE     'ROLL NUMBER' .
+               10 SPACES-1      PIC X(02) VALUE ALL SPACES.
+               10 NAME          PIC A(04) VALUE     'NAME' .
+               10 SPACES-2      PIC X(12) VALUE ALL SPACES.
+               10 DEPARTMENT    PIC A(03) VALUE     'DPT' .
+               10 SPACES-3      PIC X(01) VALUE ALL SPACES.
+               10 LOCATION      PIC A(08) VALUE     'LOCATION' .
+               10 SPACES-4      PIC X(04) VALUE ALL SPACES.
+               10 SALARY        PIC A(06) VALUE     'SALARY' .
+               10 SPACES-5      PIC X(03) VALUE ALL SPACES.
+               10 NEW-SALARY    PIC A(10) VALUE     'NEW SALARY' .
+               10 SPACES-6      PIC X(16) VALUE ALL SPACES.
+           05 WS05-TO001-2.
+               10 FILLER-1      PIC X(12) VALUE ALL '-' .
+               10 SPACES-1      PIC X(01) VALUE     SPACES.
+               10 FILLER-2      PIC X(15) VALUE ALL '-' .
+               10 SPACES-2      PIC X(01) VALUE     SPACES.
+               10 FILLER-3      PIC X(03) VALUE ALL '-' .
+               10 SPACES-3      PIC X(01) VALUE     SPACES.
+               10 FILLER-4      PIC X(11) VALUE ALL '-' .
+               10 SPACES-4      PIC X(01) VALUE     SPACES.
+               10 FILLER-5      PIC X(08) VALUE ALL '-' .
+               10 SPACES-5      PIC X(01) VALUE     SPACES.
+               10 FILLER-6      PIC X(10) VALUE ALL '-' .
+               10 SPACES-7      PIC X(01) VALUE     SPACES.
+               10 FILLER-7      PIC X(15) VALUE ALL '-' .
+           05 WS05-FOOTER.
+               10 FILLER-1      PIC X(29) VALUE ALL '*' .
+               10 FOOTER        PIC A(13) VALUE     'END OF REPORT'.
+               10 FILLER-2      PIC X(38) VALUE ALL '*' .
+       PROCEDURE DIVISION.
+       0000-MAIN-PARA.
+           PERFORM 1000-INIT-PARA
+           PERFORM 3000-PROC-PARA
+              THRU 3000-PROC-PARA-EXIT
+           PERFORM 9000-TERM-PARA
+           .
+       1000-INIT-PARA.
+           CONTINUE
+           .
+       9000-TERM-PARA.
+           STOP RUN
+           .
+       3000-PROC-PARA.
+           PERFORM 3100-OPEN-PARA
+              THRU 3100-OPEN-PARA-EXIT
+           PERFORM 3200-HEADER-PARA
+              THRU 3200-HEADER-PARA-EXIT
+           PERFORM 3300-TITLE-PARA
+              THRU 3300-TITLE-PARA-EXIT
+           PERFORM 3400-READ-PARA
+              THRU 3400-READ-PARA-EXIT
+             UNTIL WS05-FST-TI001 = 10
+           PERFORM 3500-FOOTER-PARA
+              THRU 3500-FOOTER-PARA-EXIT
+           PERFORM 3600-CLOSE-PARA
+              THRU 3600-CLOSE-PARA-EXIT
+           .
+       3000-PROC-PARA-EXIT.
+           EXIT
+           .
+       3100-OPEN-PARA.
+           OPEN INPUT TI001-PS
+           EVALUATE TRUE
+           WHEN WS05-FST-TI001 = 0
+               DISPLAY 'TI001-PS WAS OPENED.'
+           WHEN OTHER
+               DISPLAY 'TI001-PS WAS NOT OPENED. FST : ' WS05-FST-TI001
+               PERFORM 9000-TERM-PARA
+           END-EVALUATE
+           OPEN OUTPUT TO001-PS
+           EVALUATE TRUE
+           WHEN WS05-FST-TO001 = 0
+               DISPLAY 'TO001-PS WAS OPENED.'
+           WHEN OTHER
+               DISPLAY 'TO001-PS WAS NOT OPENED. FST : ' WS05-FST-TO001
+               PERFORM 9000-TERM-PARA
+           END-EVALUATE
+           .
+       3100-OPEN-PARA-EXIT.
+           EXIT
+           .
+       3200-HEADER-PARA.
+             WRITE TO001-PS-REC FROM WS05-HEADER-1
+           DISPLAY 'HEADER WRITING HAS STARTED.'
+           PERFORM 3210-DATETIME-PARA
+              THRU 3210-DATETIME-PARA-EXIT
+             WRITE TO001-PS-REC FROM WS05-HEADER-2
+             WRITE TO001-PS-REC FROM WS05-HEADER-3
+           PERFORM EVALUATE-PARA
+              THRU EVALUATE-PARA-EXIT
+           .
+       3200-HEADER-PARA-EXIT.
+           EXIT
+           .
+       3210-DATETIME-PARA.
+           MOVE FUNCTION CURRENT-DATE TO WS05-DATETIME
+           MOVE '/'                   TO DATEE(3:1) , DATEE(6:1)
+           MOVE WS05-DATE(1:4)        TO DATEE(7:4)
+           MOVE WS05-DATE(5:2)        TO DATEE(4:2)
+           MOVE WS05-DATE(7:2)        TO DATEE(1:2)
+           MOVE WS05-TIME(1:2)        TO TIMEE-1(1:2)
+           MOVE ':'                   TO TIMEE-2(1:1)
+           MOVE WS05-TIME(3:2)        TO TIMEE-2(2:2)
+           MOVE SPACES                TO TIMEE-2(4:1)
+              EVALUATE TRUE
+                  WHEN TIMEE-1 < 12
+                      MOVE 'AM'       TO TIMEE-2(5:2)
+                  WHEN TIMEE-1 = 00
+                      MOVE 12         TO TIMEE-1
+                      MOVE 'AM'       TO TIMEE-2(5:2)
+                  WHEN TIMEE-1 > 12
+                  SUBTRACT 12       FROM TIMEE-1
+                      MOVE 'PM'       TO TIMEE-2(5:2)
+                  WHEN TIMEE-1 = 12
+                      MOVE 'PM'       TO TIMEE-2(5:2)
+              END-EVALUATE
+           DISPLAY 'CAPTURED DATE AND TIME FROM SYSTEM.'
+           .
+       3210-DATETIME-PARA-EXIT.
+           EXIT
+           .
+       3300-TITLE-PARA.
+           WRITE TO001-PS-REC FROM WS05-TO001-1
+           WRITE TO001-PS-REC FROM WS05-TO001-2
+           DISPLAY 'RECORDS WRITING HAS STARTED.'
+           .
+       3300-TITLE-PARA-EXIT.
+           EXIT
+           .
+       3400-READ-PARA.
+           MOVE SPACES TO TI001-PS-REC , TO001-PS-REC
+           READ TI001-PS
+           EVALUATE TRUE
+           WHEN WS05-FST-TI001 = 0
+               WRITE TO001-PS-REC FROM TI001-PS-REC
+           WHEN WS05-FST-TI001 = 10
+               DISPLAY 'RECORDS HAS BEEN WRITTEN.'
+           WHEN OTHER
+               DISPLAY 'UNABLE TO READ THE RECORDS. FST : '
+                       WS05-FST-TI001
+               PERFORM 9000-TERM-PARA
+           END-EVALUATE
+           PERFORM EVALUATE-PARA
+              THRU EVALUATE-PARA-EXIT
+           .
+       3400-READ-PARA-EXIT.
+           EXIT
+           .
+       3500-FOOTER-PARA.
+           WRITE TO001-PS-REC FROM WS05-FOOTER
+           DISPLAY 'FOOTER WRITING HAS STARTED.'
+           PERFORM EVALUATE-PARA
+              THRU EVALUATE-PARA-EXIT
+           .
+       3500-FOOTER-PARA-EXIT.
+           EXIT
+           .
+       3600-CLOSE-PARA.
+           CLOSE TI001-PS , TO001-PS
+           .
+       3600-CLOSE-PARA-EXIT.
+           EXIT
+           .
+       EVALUATE-PARA.
+           EVALUATE TRUE
+           WHEN WS05-FST-TO001 = 0
+               DISPLAY 'SUCCESS.'
+           WHEN OTHER
+               DISPLAY 'FAILED.'
+           .
+       EVALUATE-PARA-EXIT.
+           EXIT
+           .
+

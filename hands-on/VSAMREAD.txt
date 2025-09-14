@@ -1,0 +1,116 @@
+       IDENTIFICATION DIVISION.                                         00010000
+       PROGRAM-ID. VSAMREAD.                                            00020000
+       ENVIRONMENT DIVISION.                                            00030001
+       INPUT-OUTPUT SECTION.                                            00040001
+       FILE-CONTROL.                                                    00050002
+           SELECT TI001-PS   ASSIGN TO DD1                              00060002
+                             ACCESS IS SEQUENTIAL                       00070002
+                             ORGANIZATION IS SEQUENTIAL                 00080002
+                             FILE STATUS IS WS05-FST-TI001.             00090002
+           SELECT TI002-KSDS ASSIGN TO DD2                              00100002
+                             ACCESS IS RANDOM                           00110015
+                             ORGANIZATION IS INDEXED                    00120004
+                             FILE STATUS IS WS05-FST-TI002              00130006
+                             RECORD KEY IS TI002-ROLL-NUMBER.           00131006
+       DATA DIVISION.                                                   00140002
+       FILE SECTION.                                                    00150002
+       FD TI001-PS.                                                     00160002
+       01 TI001-PS-REC.                                                 00170002
+           05 TI001-ROLL-NUMBER PIC X(12).                              00180002
+           05 FILLER            PIC X(68).                              00181008
+       FD TI002-KSDS.                                                   00190002
+       01 TI002-KSDS-REC.                                               00200002
+           05 TI002-ROLL-NUMBER PIC X(12).                              00210002
+           05 FILLER            PIC X(68).                              00211008
+       WORKING-STORAGE SECTION.                                         00220002
+       01 WS01-VARS.                                                    00230002
+           05 WS05-FST-TI001   PIC 9(02).                               00240009
+           05 WS05-FST-TI002   PIC 9(02).                               00250009
+       PROCEDURE DIVISION.                                              00260002
+       0000-MAIN-PARA.                                                  00270002
+           PERFORM 1000-INIT-PARA                                       00280002
+           PERFORM 3000-PROC-PARA                                       00290002
+              THRU 3000-PROC-PARA-EXIT                                  00300002
+           PERFORM 9000-TERM-PARA                                       00310002
+           .                                                            00320002
+       1000-INIT-PARA.                                                  00330002
+           CONTINUE                                                     00340002
+           .                                                            00350002
+       9000-TERM-PARA.                                                  00360002
+           STOP RUN                                                     00370002
+           .                                                            00380002
+       3000-PROC-PARA.                                                  00390002
+           PERFORM 3100-OPEN-PARA                                       00400002
+              THRU 3100-OPEN-PARA-EXIT                                  00410002
+           PERFORM 3200-READ-PARA                                       00420002
+              THRU 3200-READ-PARA-EXIT                                  00430002
+             UNTIL WS05-FST-TI001 = 10                                  00431007
+           PERFORM 3300-CLOSE-PARA                                      00440002
+              THRU 3300-CLOSE-PARA-EXIT                                 00450002
+           .                                                            00460002
+       3000-PROC-PARA-EXIT.                                             00470002
+           EXIT                                                         00480002
+           .                                                            00490002
+       3100-OPEN-PARA.                                                  00500002
+           OPEN INPUT TI001-PS                                          00510002
+           EVALUATE TRUE                                                00520002
+           WHEN WS05-FST-TI001 = 0                                      00530002
+               DISPLAY 'TI001 WAS OPENED.'                              00540002
+           WHEN OTHER                                                   00550002
+               DISPLAY 'TI001 WAS FAILED TO TO OPEN. FILE STATUS : '    00560002
+                       WS05-FST-TI001                                   00570002
+               PERFORM 9000-TERM-PARA                                   00570109
+           END-EVALUATE                                                 00570202
+           OPEN INPUT TI002-KSDS                                        00571002
+           EVALUATE TRUE                                                00572002
+           WHEN WS05-FST-TI002 = 0                                      00573002
+               DISPLAY 'TI002 WAS OPENED.'                              00574002
+           WHEN OTHER                                                   00575002
+               DISPLAY 'TI002 WAS FAILED TO TO OPEN. FILE STATUS : '    00576002
+                       WS05-FST-TI002                                   00577002
+               PERFORM 9000-TERM-PARA                                   00577109
+           END-EVALUATE                                                 00577202
+           .                                                            00578002
+       3100-OPEN-PARA-EXIT.                                             00579002
+           EXIT                                                         00580002
+           .                                                            00590002
+       3200-READ-PARA.                                                  00600002
+           MOVE SPACES TO TI001-PS-REC TI002-KSDS-REC                   00601014
+           READ TI001-PS                                                00610002
+           EVALUATE TRUE                                                00620002
+           WHEN WS05-FST-TI001 = 0                                      00630002
+               PERFORM 3210-READ-KSDS-PARA                              00640002
+                  THRU 3210-READ-KSDS-PARA-EXIT                         00650002
+           WHEN WS05-FST-TI001 = 10                                     00651010
+               DISPLAY 'ALL RECORDS READ FROM PS'                       00652014
+           WHEN OTHER                                                   00660002
+               DISPLAY 'UNABLE TO READ PS FILE, FST : ' WS05-FST-TI001  00670016
+           END-EVALUATE                                                 00670102
+           .                                                            00671002
+       3200-READ-PARA-EXIT.                                             00680002
+           EXIT                                                         00690002
+           .                                                            00700002
+       3210-READ-KSDS-PARA.                                             00710002
+           MOVE TI001-ROLL-NUMBER TO TI002-ROLL-NUMBER                  00720002
+           READ TI002-KSDS                                              00720214
+           EVALUATE TRUE                                                00730002
+           WHEN WS05-FST-TI002 = 0                                      00740002
+               DISPLAY 'RECORD MATCH FOUND : '                          00760002
+               DISPLAY '    ' TI002-KSDS-REC                            00770002
+           WHEN WS05-FST-TI002 = 10                                     00771010
+               CONTINUE                                                 00772010
+           WHEN OTHER                                                   00780002
+               DISPLAY 'RECORD MATCH NOT FOUND. FILE STATUS : '         00790002
+                       WS05-FST-TI002                                   00800002
+           END-EVALUATE                                                 00810002
+           .                                                            00820002
+       3210-READ-KSDS-PARA-EXIT.                                        00830002
+           EXIT                                                         00840002
+           .                                                            00850002
+       3300-CLOSE-PARA.                                                 00860002
+           CLOSE TI001-PS TI002-KSDS                                    00870002
+           .                                                            00880002
+       3300-CLOSE-PARA-EXIT.                                            00890002
+           EXIT                                                         00900002
+           .                                                            00910002
+
