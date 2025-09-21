@@ -65,7 +65,9 @@ Contains my worked out assessment code answers based on JCL, COBOL and DB2 utili
 
 sort_with_KSDS
 
-sort_with_RRDSsort_using_Catalogue
+sort_with_RRDS
+
+sort_using_Catalogue
 
 
 ---
